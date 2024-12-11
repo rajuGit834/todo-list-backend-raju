@@ -1,6 +1,6 @@
+require("dotenv").config();
 const exp = require("constants");
 const express = require("express");
-const PORT = 8080;
 const app = express();
 
 // Adding Middleware for parsing the body
@@ -11,8 +11,19 @@ app.get("/", (req, res) => {
   res.send("Welcome To Todo List Home Page");
 });
 
-require("./app/routes/todo.route.js")(app);
+const usersRoute = require("./app/routes/users.route.js");
+usersRoute(app);
 
+const projectsRoute = require("./app/routes/projects.route.js");
+projectsRoute(app);
+
+const taskRoute = require("./app/routes/task.route.js");
+taskRoute(app);
+
+const commentsRoute = require("./app/routes/comments.route.js");
+commentsRoute(app);
+
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

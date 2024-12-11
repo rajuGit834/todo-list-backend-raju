@@ -35,4 +35,4 @@ coverage/
 *.temp
 
 # Database 
-tododb.db
+tododb.sqlite

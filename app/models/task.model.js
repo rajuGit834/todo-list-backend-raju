@@ -9,77 +9,113 @@ const Task = function (newTask) {
   this.project_id = newTask.project_id;
 };
 
-Task.create = (task, result) => {
-  const query = `INSERT INTO task (content, description, due_date, is_completed, project_id)
+Task.create = (task) => {
+  return new Promise((resolve, reject) => {
+    const query = `INSERT INTO task (content, description, due_date, is_completed, project_id)
     VALUES (?, ?, ?, ?, ?)`;
 
-  sqlite3.run(
-    query,
-    [
-      task.content,
-      task.description,
-      task.due_date,
-      task.is_completed,
-      task.project_id,
-    ],
-    function (error) {
-      if (error) {
-        return result(error, null);
+    sqlite3.run(
+      query,
+      [
+        task.content,
+        task.description,
+        task.due_date,
+        task.is_completed,
+        task.project_id,
+      ],
+      function (error) {
+        if (error) {
+          reject(error);
+        }
+        resolve({ id: this.lastID, ...task });
       }
-      return result(null, { id: this.lastID, ...task });
-    }
-  );
-};
-
-Task.findAll = (result) => {
-  const query = `SELECT * FROM task`;
-
-  sqlite3.all(query, [], (error, rows) => {
-    if (error) {
-      return result(error, null);
-    }
-    return result(null, rows);
+    );
   });
 };
 
-Task.updateById = (id, task, result) => {
-  const query = `
+Task.findAll = (requestQuery) => {
+  let query = `SELECT * FROM task WHERE 1=1 `;
+  const { project_id, due_date, is_completed, created_at } = requestQuery;
+  const params = [];
+  if (project_id) {
+    query += "AND project_id = ?";
+    params.push(project_id);
+  }
+  if (due_date) {
+    query += "AND due_date = ?";
+    params.push(due_date);
+  }
+  if (is_completed) {
+    query += "AND is_completed = ?";
+    params.push(is_completed);
+  }
+  if (created_at) {
+    query += "AND created_at = ?";
+    params.push(created_at);
+  }
+
+  return new Promise((resolve, reject) => {
+    sqlite3.all(query, params, (error, rows) => {
+      if (error) {
+        reject(error);
+      }
+      resolve(rows);
+    });
+  });
+};
+
+Task.findById = (id) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT * FROM task WHERE id = ?`;
+    sqlite3.get(query, [id], (error, row) => {
+      resolve(row);
+    });
+  });
+};
+
+Task.updateById = (id, task) => {
+  return new Promise((resolve, reject) => {
+    const query = `
     UPDATE task 
     SET content = ?, description = ?, due_date = ?, is_completed = ?, project_id = ?
     WHERE task_id = ?
     `;
 
-  sqlite3.run(
-    query,
-    [
-      task.content,
-      task.description,
-      task.due_date,
-      task.is_completed,
-      task.project_id,
-      id,
-    ],
-    (error) => {
-      if (error) {
-        return result(error, null);
+    sqlite3.run(
+      query,
+      [
+        task.content,
+        task.description,
+        task.due_date,
+        task.is_completed,
+        task.project_id,
+        id,
+      ],
+      (error) => {
+        if (error) {
+          reject(error);
+        }
+        resolve({ id: id, ...task });
       }
-      return result(null, { id: id, ...task });
-    }
-  );
+    );
+  });
 };
 
-Task.deleteById = (id, result) => {
-  const query = `
+Task.deleteById = (id) => {
+  return new Promise((resolve, reject) => {
+    const query = `
       DELETE FROM task WHERE task_id = ?`;
 
-  sqlite3.run(query, [id], function (error) {
-    if (error) {
-      return result(error);
-    }
-    if (this.changes === 0) {
-      return result({ kind: "not_found" });
-    }
-    return result(null);
+    sqlite3.run(query, [id], function (error) {
+      if (error) {
+        reject(error);
+      }
+      if (this.changes === 0) {
+        reject({ kind: "not_found" });
+        return;
+      }
+      resolve("Task Deleted Successfully.");
+    });
   });
 };
 

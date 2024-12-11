@@ -1,3 +1,3 @@
 module.exports = {
-    DB : "tododb.db"
+    DB : "tododb.sqlite"
 };

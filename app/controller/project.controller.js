@@ -2,76 +2,117 @@ const Project = require("../models/project.model.js");
 
 exports.createProject = (req, res) => {
   if (!req.body) {
-    return res.status(400).send({ error: "Body can not be empty!" });
+    return res.status(400).send({
+      error: "Request body is missing.",
+      message:
+        "The request body is required. Please provide the necessary data in the body of the request.",
+    });
+  }
+
+  if (!req.body.user_id) {
+    return res.status(422).send({
+      error: "Missing required field.",
+      message:
+        "'user_id' is a required field. Please include it in the request body.",
+    });
   }
 
   const project = new Project(req.body);
 
-  Project.create(project, (error, newProject) => {
-    if (error) {
+  Project.create(project)
+    .then((newProject) => {
       return res
-        .status(500)
-        .send({ message: "Project not added", error: error.message });
-    }
-    return res.send({ message: "Project added successfully.", ...newProject });
-  });
+        .status(201)
+        .send({ message: "Project added successfully.", project: newProject });
+    })
+    .catch((error) => {
+      if (error.message.includes("SQLITE_CONSTRAINT")) {
+        return res.status(400).send({
+          error: "Invalid foreign key",
+          message:
+            "The provided 'user_id' is invalid or does not exist. Please provide a valid 'user_id'.",
+        });
+      }
+      return res.status(500).send({
+        message: "Project creation failed.",
+        error: error.message,
+      });
+    });
 };
 
 exports.getAllProjects = (req, res) => {
-  Project.findAll((error, rows) => {
-    if (error) {
-      return res
-        .status(500)
-        .send({
-          error: "Something went wrong while finding projects",
-          error: error.message,
-        });
-    }
-    if (!rows.length) {
-      return res.status(404).send({ message: "No any Projects is available" });
-    }
-    return res.send(rows);
-  });
+  Project.findAll()
+    .then((rows) => {
+      if (!rows.length) {
+        return res.status(204).send({ message: "No projects found at this moment." });
+      }
+      return res.status(200).send(rows);
+    })
+    .catch((error) => {
+      return res.status(500).send({
+        message: "Failed to fetch projects.",
+        error: error.message,
+      });
+    });
 };
 
 exports.updateProject = (req, res) => {
   const id = Number(req.params.id);
 
-  if (id < 0) {
-    return res.status(400).send({ message: "Id Must be positive." });
+  if (id <= 0) {
+    return res.status(400).send({
+      error: "Invalid ID",
+      message: "The Id Must be a positive number.",
+    });
   }
 
-  Project.updateById(id, req.body, (error, updatedTask) => {
-    if (error) {
-      return res
-        .status(500)
-        .send({ message: "Project not updated", error: error.message });
-    }
-    return res.send({
-      message: "Project Updated Successfully.",
-      ...updatedTask,
+  Project.updateById(id, req.body)
+    .then((updatedProject) => {
+      if (!updatedProject) {
+        return res.status(404).send({
+          error: "Not Found",
+          message: `No project found with ID ${id}.`,
+        });
+      }
+      return res.status(200).send({
+        message: "Project Updated Successfully.",
+        project: updatedProject,
+      });
+    })
+    .catch((error) => {
+      return res.status(500).send({
+        error: "Update Failed",
+        message: "An error occurred while updating the project.",
+        details: error.message,
+      });
     });
-  });
 };
 
 exports.deleteProject = (req, res) => {
   const id = Number(req.params.id);
 
-  if (id < 0) {
-    return res.status(400).send({ message: "Id Must be positive." });
+  if (id <= 0) {
+    return res.status(400).send({
+      error: "Invalid ID",
+      message: "The ID must be a positive number.",
+    });
   }
 
-  Project.deleteById(id, (error) => {
-    if (error) {
+  Project.deleteById(id)
+    .then((message) => {
+      return res.send({ message: message + id });
+    })
+    .catch((error) => {
       if (error.kind === "not_found") {
         return res.status(404).send({
-          error: "Id is not available or already deleted with id " + id,
+          error: "Not Found",
+          message: `No project found with ID ${id}, or it was already deleted.`,
         });
       }
-      return res
-        .status(500)
-        .send({ message: "Project not updated", error: error.message });
-    }
-    return res.send({ message: "Project Deleted Successfully with id " + id });
-  });
+      return res.status(500).send({
+        error: "Delete Failed",
+        message: "An error occurred while attempting to delete the project.",
+        details: error.message,
+      });
+    });
 };
