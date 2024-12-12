@@ -1,14 +1,15 @@
 module.exports = (app) => {
   const router = require("express").Router();
+  const commentValidation = require("../validation/comment.validation");
   const commentsController = require("../controller/comments.controller");
 
   router
     .route("/comments")
     .get(commentsController.getAllComments)
-    .post(commentsController.createComment);
+    .post(commentValidation, commentsController.createComment);
   router
     .route("/comments/:id")
-    .put(commentsController.updateComment)
+    .put(commentValidation, commentsController.updateComment)
     .delete(commentsController.deleteComment);
 
   app.use("/api", router);

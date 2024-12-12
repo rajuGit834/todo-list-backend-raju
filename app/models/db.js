@@ -1,4 +1,4 @@
-const sqlite3 = require("sqlite3");
+const sqlite3 = require("sqlite3").verbose();
 const db = require("../config/config.js");
 const { constants } = require("buffer");
 
@@ -78,7 +78,7 @@ function createCommentsTable(connection) {
   });
 }
 
-const connection = new sqlite3.Database(db.DB, (error) => {
+let connection = new sqlite3.Database(db.DB, (error) => {
   if (error) {
     console.log("Not Connected With Database..", error.message);
   } else {

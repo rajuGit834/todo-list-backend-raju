@@ -1,16 +1,16 @@
 module.exports = (app) => {
   const taskController = require("../controller/task.controller");
+  const taskValidation = require("../validation/task.validation");
   const router = require("express").Router();
 
   router
     .route("/task")
     .get(taskController.getAllTask)
-    .post(taskController.createTask);
+    .post(taskValidation, taskController.createTask);
   router
     .route("/task/:id")
-    .put(taskController.updateTask)
+    .put(taskValidation, taskController.updateTask)
     .delete(taskController.deleteTask);
 
   app.use("/api", router);
-
 };

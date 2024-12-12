@@ -1,9 +1,12 @@
 const sqlite3 = require("./db");
+const insertValuesInUsers = require("../generator/users.generator")
 
 const User = function (newUser) {
   this.userName = newUser.user_name;
   this.userEmail = newUser.user_email.toLowerCase();
 };
+
+// insertValuesInUsers(sqlite3);
 
 User.create = (user) => {
   return new Promise((resolve, reject) => {

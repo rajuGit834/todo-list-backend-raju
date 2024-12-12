@@ -2,20 +2,6 @@ const { CONSTRAINT } = require("sqlite3");
 const Comment = require("../models/comments.model");
 
 exports.createComment = (req, res) => {
-  if (!req.body) {
-    return res.status(400).send({
-      error: "Request body is missing.",
-      message: "Please provide the required data in the request body.",
-    });
-  }
-  if (!req.body.project_id) {
-    return res.status(422).send({
-      error: "Missing required fields.",
-      message:
-        "'project_id' are required field. Please include them in the request body.",
-    });
-  }
-
   const comment = new Comment(req.body);
 
   Comment.create(comment)
@@ -65,13 +51,6 @@ exports.getAllComments = (req, res) => {
 
 exports.updateComment = (req, res) => {
   const id = Number(req.params.id);
-
-  if (id <= 0) {
-    return res.status(400).send({
-      error: "Invalid ID",
-      message: "The ID must be a positive number.",
-    });
-  }
 
   Comment.updateById(id, req.body)
     .then((updatedComment) => {

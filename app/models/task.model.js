@@ -1,4 +1,5 @@
 const sqlite3 = require("./db.js");
+const insertValuesInTask = require("../generator/tasks.generator.js");
 
 const Task = function (newTask) {
   this.content = newTask.content;
@@ -8,6 +9,8 @@ const Task = function (newTask) {
   this.created_at = newTask.created_at;
   this.project_id = newTask.project_id;
 };
+
+// insertValuesInTask(sqlite3);
 
 Task.create = (task) => {
   return new Promise((resolve, reject) => {

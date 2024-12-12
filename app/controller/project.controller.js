@@ -1,22 +1,6 @@
 const Project = require("../models/project.model.js");
 
 exports.createProject = (req, res) => {
-  if (!req.body) {
-    return res.status(400).send({
-      error: "Request body is missing.",
-      message:
-        "The request body is required. Please provide the necessary data in the body of the request.",
-    });
-  }
-
-  if (!req.body.user_id) {
-    return res.status(422).send({
-      error: "Missing required field.",
-      message:
-        "'user_id' is a required field. Please include it in the request body.",
-    });
-  }
-
   const project = new Project(req.body);
 
   Project.create(project)
@@ -58,13 +42,6 @@ exports.getAllProjects = (req, res) => {
 
 exports.updateProject = (req, res) => {
   const id = Number(req.params.id);
-
-  if (id <= 0) {
-    return res.status(400).send({
-      error: "Invalid ID",
-      message: "The Id Must be a positive number.",
-    });
-  }
 
   Project.updateById(id, req.body)
     .then((updatedProject) => {

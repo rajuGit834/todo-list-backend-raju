@@ -1,18 +1,11 @@
 const User = require("../models/users.model");
 
 exports.createUser = (req, res) => {
-  if (!req.body) {
-    return res.status(400).send({
-      error: "Request Body Missing.",
-      message:
-        "The request body is required. Please provide the necessary data in the body of the request.",
-    });
-  }
   const user = new User(req.body);
 
   User.create(user)
     .then((newUser) => {
-      return res.send({
+      return res.status(200).send({
         message: "User Added Successfully..",
         user: newUser,
       });
@@ -57,13 +50,6 @@ exports.getAllUsers = (req, res) => {
 exports.updateUser = (req, res) => {
   const id = Number(req.params.id);
 
-  if (id <= 0) {
-    return res.status(400).send({
-      error: "Invalid ID",
-      message: "The ID must be a positive number.",
-    });
-  }
-
   User.updateById(id, req.body)
     .then((updatedUser) => {
       return res.status(200).send({
@@ -80,13 +66,6 @@ exports.updateUser = (req, res) => {
 
 exports.deleteUser = (req, res) => {
   const id = Number(req.params.id);
-
-  if (id <= 0) {
-    return res.status(400).send({
-      error: "Invalid ID",
-      message: "The ID must be a positive number.",
-    });
-  }
 
   User.deleteById(id)
     .then((message) => {

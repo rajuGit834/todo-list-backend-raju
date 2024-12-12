@@ -1,15 +1,16 @@
 module.exports = (app) => {
   const router = require("express").Router();
+  const userValidation = require("../validation/users.validation");
   const usersController = require("../controller/users.controller");
 
   router
-    .route("/users")
+    .route("/")
     .get(usersController.getAllUsers)
-    .post(usersController.createUser);
+    .post(userValidation, usersController.createUser);
   router
-    .route("/users/:id")
-    .put(usersController.updateUser)
+    .route("/:id")
+    .put(userValidation, usersController.updateUser)
     .delete(usersController.deleteUser);
 
-  app.use("/api", router);
+  app.use("/api/users", router);
 };

@@ -1,22 +1,6 @@
 const Task = require("../models/task.model");
 
 exports.createTask = (req, res) => {
-  if (!req.body) {
-    return res.status(400).send({
-      error: "Request body is missing.",
-      message:
-        "The request body is required. Please provide the necessary data in the body of the request.",
-    });
-  }
-
-  if (!req.body.project_id) {
-    return res.status(422).send({
-      error: "Missing required field.",
-      message:
-        "'project_id' is a required field. Please include it in the request body.",
-    });
-  }
-
   const task = new Task(req.body);
 
   Task.create(task)
@@ -67,10 +51,6 @@ exports.getAllTask = (req, res) => {
 
 exports.updateTask = (req, res) => {
   const id = Number(req.params.id);
-
-  if (id <= 0) {
-    return res.status(400).send({ message: "Id Must be a positive number." });
-  }
 
   Task.findById(id)
     .then((task) => {
