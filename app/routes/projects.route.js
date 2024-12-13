@@ -9,6 +9,7 @@ module.exports = (app) => {
     .post(projectValidation, projectController.createProject);
   router
     .route("/projects/:id")
+    .get(projectController.getOneUserById)
     .put(projectValidation, projectController.updateProject)
     .delete(projectController.deleteProject);
 

@@ -30,13 +30,41 @@ exports.createUser = (req, res) => {
 
 exports.getAllUsers = (req, res) => {
   User.findAll()
-    .then((rows) => {
-      if (!rows.length) {
+    .then((users) => {
+      if (!users.length) {
         return res
           .status(404)
           .send({ error: "Not Found", message: "No Users Found" });
       }
-      return res.send(rows);
+      return res.send(users);
+    })
+    .catch((error) => {
+      return res.status(500).send({
+        error: "Server Error",
+        message: "An error occurred while fetching users",
+        details: error.message,
+      });
+    });
+};
+
+exports.getOneUserById = (req, res) => {
+  let id = Number(req.params.id);
+
+  if (id <= 0) {
+    return res.status(400).send({
+      error: "Invalid ID",
+      message: "The ID must be a positive number and greater than 0.",
+    });
+  }
+
+  User.findById(id)
+    .then((user) => {
+      if (!user) {
+        return res
+          .status(404)
+          .send({ error: "Not Found", message: "No Users Found" });
+      }
+      return res.send(user);
     })
     .catch((error) => {
       return res.status(500).send({
@@ -58,6 +86,18 @@ exports.updateUser = (req, res) => {
       });
     })
     .catch((error) => {
+      if (error.kind === "not_found") {
+        return res.status(404).send({
+          error: "Not Found",
+          message: "Please Provide a Valid ID.",
+        });
+      }
+      if (error.message.includes("SQLITE_CONSTRAINT: UNIQUE")) {
+        return res.status(400).send({
+          error: "Conflict",
+          message: "The provided email is already in use.",
+        });
+      }
       return res
         .status(500)
         .send({ message: "User not updated", error: error.message });
@@ -66,6 +106,13 @@ exports.updateUser = (req, res) => {
 
 exports.deleteUser = (req, res) => {
   const id = Number(req.params.id);
+
+  if (id <= 0) {
+    return res.status(400).send({
+      error: "Invalid ID",
+      message: "The ID must be a positive number and greater than 0.",
+    });
+  }
 
   User.deleteById(id)
     .then((message) => {

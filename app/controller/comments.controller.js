@@ -1,5 +1,6 @@
 const { CONSTRAINT } = require("sqlite3");
 const Comment = require("../models/comments.model");
+const commentsRoute = require("../routes/comments.route");
 
 exports.createComment = (req, res) => {
   const comment = new Comment(req.body);
@@ -49,23 +50,51 @@ exports.getAllComments = (req, res) => {
     });
 };
 
+exports.getOneCommentById = (req, res) => {
+  let id = Number(req.params.id);
+
+  if (id <= 0) {
+    return res.status(400).send({
+      error: "Invalid ID",
+      message: "The ID must be a positive number and greater than 0.",
+    });
+  }
+
+  Comment.findById(id)
+    .then((comment) => {
+      if (!comment) {
+        return res
+          .status(404)
+          .send({ error: "Not Found", message: "No Comments Found" });
+      }
+      return res.send(comment);
+    })
+    .catch((error) => {
+      return res.status(500).send({
+        error: "Server Error",
+        message: "An error occurred while fetching comments",
+        details: error.message,
+      });
+    });
+};
+
 exports.updateComment = (req, res) => {
   const id = Number(req.params.id);
 
   Comment.updateById(id, req.body)
     .then((updatedComment) => {
-      if (!updatedComment) {
-        return res.status(404).send({
-          error: "Not Found",
-          message: `No comment found with ID ${id}.`,
-        });
-      }
       return res.status(200).send({
         message: "Comment Updated Successfully.",
         comment: updatedComment,
       });
     })
     .catch((error) => {
+      if (error.kind === "not_found") {
+        return res.status(404).send({
+          error: "Not Found",
+          message: "Please Provide Valid ID.",
+        });
+      }
       return res.status(500).send({
         error: "Server Error",
         message: "An error occurred while updating the comment.",

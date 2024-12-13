@@ -9,6 +9,7 @@ module.exports = (app) => {
     .post(userValidation, usersController.createUser);
   router
     .route("/:id")
+    .get(usersController.getOneUserById)
     .put(userValidation, usersController.updateUser)
     .delete(usersController.deleteUser);
 

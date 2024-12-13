@@ -58,20 +58,24 @@ Task.findAll = (requestQuery) => {
   }
 
   return new Promise((resolve, reject) => {
-    sqlite3.all(query, params, (error, rows) => {
+    sqlite3.all(query, params, (error, tasks) => {
       if (error) {
         reject(error);
       }
-      resolve(rows);
+      resolve(tasks);
     });
   });
 };
 
 Task.findById = (id) => {
+  const query = `SELECT * FROM task where task_id = ?`;
+
   return new Promise((resolve, reject) => {
-    const query = `SELECT * FROM task WHERE id = ?`;
-    sqlite3.get(query, [id], (error, row) => {
-      resolve(row);
+    sqlite3.get(query, [id], (error, task) => {
+      if (error) {
+        reject(error);
+      }
+      resolve(task);
     });
   });
 };
@@ -94,9 +98,12 @@ Task.updateById = (id, task) => {
         task.project_id,
         id,
       ],
-      (error) => {
+      function (error) {
         if (error) {
           reject(error);
+        }
+        if (this.changes === 0) {
+          reject({ kind: "not_found" });
         }
         resolve({ id: id, ...task });
       }

@@ -4,13 +4,14 @@ module.exports = (app) => {
   const router = require("express").Router();
 
   router
-    .route("/task")
+    .route("/")
     .get(taskController.getAllTask)
     .post(taskValidation, taskController.createTask);
   router
-    .route("/task/:id")
+    .route("/:id")
+    .get(taskController.getOneTaskById)
     .put(taskValidation, taskController.updateTask)
     .delete(taskController.deleteTask);
 
-  app.use("/api", router);
+  app.use("/api/task", router);
 };

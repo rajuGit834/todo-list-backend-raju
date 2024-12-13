@@ -2,7 +2,7 @@ const { faker } = require("@faker-js/faker");
 
 function executeBulkInsert(sqlite3) {
   const insertCount = 1000;
-  const stmt = sqlite3.prepare(
+  const statement = sqlite3.prepare(
     `INSERT INTO comments(content, project_id, task_id)
      VALUES(?, ?, ?)`
   );
@@ -16,9 +16,9 @@ function executeBulkInsert(sqlite3) {
       let taskId = Math.floor(Math.random() * 5_00_000);
       taskId = taskId === 0 ? 1 : taskId;
 
-      stmt.run(content, projectId, taskId);
+      statement.run(content, projectId, taskId);
     }
-    stmt.finalize();
+    statement.finalize();
     sqlite3.run("COMMIT");
   });
 }

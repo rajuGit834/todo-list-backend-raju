@@ -4,15 +4,16 @@ module.exports = (app) => {
   const commentsController = require("../controller/comments.controller");
 
   router
-    .route("/comments")
+    .route("/")
     .get(commentsController.getAllComments)
     .post(commentValidation, commentsController.createComment);
   router
-    .route("/comments/:id")
+    .route("/:id")
+    .get(commentsController.getOneCommentById)
     .put(commentValidation, commentsController.updateComment)
     .delete(commentsController.deleteComment);
 
-  app.use("/api", router);
+  app.use("/api/comments", router);
 
   app.use((req, res) => {
     res.status(404).send({

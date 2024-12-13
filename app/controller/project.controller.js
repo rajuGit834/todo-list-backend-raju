@@ -40,23 +40,51 @@ exports.getAllProjects = (req, res) => {
     });
 };
 
+exports.getOneUserById = (req, res) => {
+  let id = Number(req.params.id);
+
+  if (id <= 0) {
+    return res.status(400).send({
+      error: "Invalid ID",
+      message: "The ID must be a positive number and greater than 0.",
+    });
+  }
+
+  Project.findById(id)
+    .then((project) => {
+      if (!project) {
+        return res
+          .status(404)
+          .send({ error: "Not Found", message: "No Project Found" });
+      }
+      return res.send(project);
+    })
+    .catch((error) => {
+      return res.status(500).send({
+        error: "Server Error",
+        message: "An error occurred while fetching projects",
+        details: error.message,
+      });
+    });
+};
+
 exports.updateProject = (req, res) => {
   const id = Number(req.params.id);
 
   Project.updateById(id, req.body)
     .then((updatedProject) => {
-      if (!updatedProject) {
-        return res.status(404).send({
-          error: "Not Found",
-          message: `No project found with ID ${id}.`,
-        });
-      }
       return res.status(200).send({
         message: "Project Updated Successfully.",
         project: updatedProject,
       });
     })
     .catch((error) => {
+      if(error.kind === "not_found"){
+        return res.status(404).send({
+          error: "Not Found",
+          message: "Please Provide Valid ID",
+        });
+      }
       return res.status(500).send({
         error: "Update Failed",
         message: "An error occurred while updating the project.",
