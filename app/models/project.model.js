@@ -1,5 +1,5 @@
 let sqlite3 = require("./db.js");
-const insertValuesInProjects = require("../generator/projects.generator");
+const insertDataInProjects = require("../generator/projects.generator");
 
 const Project = function (newProject) {
   this.projectName = newProject.project_name;
@@ -8,7 +8,7 @@ const Project = function (newProject) {
   this.userId = newProject.user_id;
 };
 
-// insertValuesInProjects(sqlite3);
+// insertDataInProjects(sqlite3);
 
 Project.create = (project) => {
   return new Promise((resolve, reject) => {

@@ -1,16 +1,13 @@
 const sqlite3 = require("./db.js");
-const insertValuesInTask = require("../generator/tasks.generator.js");
+const insertDataInTask = require("../generator/tasks.generator.js");
 
 const Task = function (newTask) {
   this.content = newTask.content;
   this.description = newTask.description;
   this.due_date = newTask.due_date;
   this.is_completed = newTask.is_completed;
-  this.created_at = newTask.created_at;
   this.project_id = newTask.project_id;
 };
-
-// insertValuesInTask(sqlite3);
 
 Task.create = (task) => {
   return new Promise((resolve, reject) => {
@@ -128,5 +125,25 @@ Task.deleteById = (id) => {
     });
   });
 };
+
+// async function solve() {
+//   for (let i = 1; i <= 10; i++) {
+//     const startTime = performance.now(); // Record the start time
+//     try {
+//       const result = await insertDataInTask(sqlite3);
+//       const endTime = performance.now(); // Record the end time
+//       const processingTime = (endTime - startTime).toFixed(2); // Calculate processing time in milliseconds
+//       console.log(`Task ${i} resolved with:`, result * i);
+//       console.log(`Task ${i} processing time: ${processingTime} ms`);
+//     } catch (error) {
+//       const endTime = performance.now();
+//       const processingTime = (endTime - startTime).toFixed(2);
+//       console.error(`Task ${i} failed with error:`, error);
+//       console.log(`Task ${i} processing time: ${processingTime} ms`);
+//     }
+//   }
+// }
+
+// solve();
 
 module.exports = Task;

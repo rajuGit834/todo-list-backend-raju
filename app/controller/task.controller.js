@@ -33,13 +33,13 @@ exports.createTask = (req, res) => {
 
 exports.getAllTask = (req, res) => {
   Task.findAll(req.query)
-    .then((rows) => {
-      if (!rows.length) {
+    .then((tasks) => {
+      if (!tasks.length) {
         return res
           .status(200)
           .send({ message: "No tasks found at this moment." });
       }
-      return res.send(rows);
+      return res.status(200).send(tasks);
     })
     .catch((error) => {
       return res.status(500).send({

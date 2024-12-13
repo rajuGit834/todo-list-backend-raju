@@ -1,22 +1,37 @@
 const { faker } = require("@faker-js/faker");
 
-function executeQueryForInsertion(sqlite3) {
-  const userName = faker.person.fullName();
-  const userEmail = faker.internet.email();
-  const query = `INSERT INTO users(user_name, user_email)
-    VALUES(?, ?)`;
+function getBulkData(dataCount) {
+  const bulkData = [];
 
-  sqlite3.run(query, [userName, userEmail], (error) => {
-    if (error) {
-      console.log("Error occured while inserting users", error.message);
-    }
-  });
+  for (let i = 1; i <= dataCount; i++) {
+    const firstUserName = faker.person.firstName();
+    const lastUserName = faker.person.lastName();
+    const userName = firstUserName + " " + lastUserName;
+    const email = `${firstUserName}${lastUserName}@gmail.com`;
+    console.log(email);
+    bulkData.push([userName, email]);
+  }
+  return bulkData;
 }
 
-function insertValuesInUsers(sqlite3) {
-  for (let userId = 1; userId <= 1000; userId++) {
-    executeQueryForInsertion(sqlite3);
+function insertDataInUsers(sqlite3) {
+  const totalData = 1000;
+  const batchSize = 100;
+  const toBeInsertedAtATime = totalData / batchSize;
+  for (let i = 1; i <= toBeInsertedAtATime; i++) {
+    const bulkData = getBulkData(batchSize);
+
+    const placeHolder = bulkData.map(() => "(?, ?)").join(", ");
+
+    const query = `INSERT INTO users(user_name, user_email) VALUES ${placeHolder}`;
+    sqlite3.run(query, bulkData.flat(), (error) => {
+      if (error) {
+        console.log("Data not inserted in users table.", error.message);
+      } else {
+        console.log("Data inserted successfully in users table.");
+      }
+    });
   }
 }
 
-module.exports = insertValuesInUsers;
+module.exports = insertDataInUsers;
