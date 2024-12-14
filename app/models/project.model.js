@@ -64,7 +64,7 @@ Project.updateById = (id, project) => {
 
     sqlite3.run(
       query,
-      [project.project_name, project.color, project.is_favorite, id],
+      [project.projectName, project.color, project.isFavorite, id],
       function (error) {
         if (error) {
           reject(error);

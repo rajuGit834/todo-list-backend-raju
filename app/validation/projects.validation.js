@@ -5,20 +5,17 @@ const projectSchema = yup.object({
     .string()
     .min(3, "Project name must be at least 3 characters long")
     .max(50, "Project name must not exceed characters")
-    .matches(/^(?!\s*$).+/, "Project name cannot be empty or only whitespace")
-    .required("Project name is required"),
+    .matches(/^(?!\s*$).+/, "Project name cannot be empty or only whitespace"),
   color: yup
     .string()
     .min(3, "Color name must be at least 3 characters long")
     .max(20, "Color name must not exceed 20 characters")
-    .matches(/^(?!\s*$).+/, "Project name cannot be empty or only whitespace")
-    .required("Color name is required"),
+    .matches(/^(?!\s*$).+/, "Project name cannot be empty or only whitespace"),
   is_favorite: yup.boolean().required("is_favorite field is required"),
   user_id: yup
     .number()
     .positive("User ID must be positive")
-    .integer("User ID must be an integer")
-    .required("User ID is required"),
+    .integer("User ID must be an integer"),
 });
 
 const projectValidation = (req, res, next) => {

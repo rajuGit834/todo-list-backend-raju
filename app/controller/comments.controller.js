@@ -1,40 +1,40 @@
 const { CONSTRAINT } = require("sqlite3");
 const Comment = require("../models/comments.model");
 const commentsRoute = require("../routes/comments.route");
+const logger = require("../config/logger");
 
-exports.createComment = (req, res) => {
+exports.createComment = (req, res, next) => {
   const comment = new Comment(req.body);
 
   Comment.create(comment)
     .then((newComment) => {
-      return res.status(200).send({
+      return res.status(201).send({
         message: "Comment Added Successfully..",
         comment: newComment,
       });
     })
     .catch((error) => {
       if (error.message.includes("SQLITE_CONSTRAINT")) {
-        return res.status(404).send({
-          error: "Invalid Foreign Key",
-          message:
-            "The provided project ID or task ID does not exist or is invalid. Please ensure you are using valid IDs.",
-        });
+        logger.error(error.message);
+        const err = new Error(
+          "The provided project ID or task ID does not exist or is invalid. Please ensure you are using valid IDs."
+        );
+        err.status = 404;
+        next(err);
+        return;
       }
-      return res.status(500).send({
-        error: "Server Error",
-        message: "An error occurred while adding the comment.",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
-exports.getAllComments = (req, res) => {
+exports.getAllComments = (req, res, next) => {
   Comment.findAll()
     .then((comments) => {
       if (!comments.length) {
-        return res.status(200).send({
-          message: "No comments are available at the moment.",
-        });
+        const err = new Error("No comments are available at the moment.");
+        err.status = 404;
+        next(err);
+        return;
       }
       return res.status(200).send({
         message: "Comments retrieved successfully.",
@@ -42,43 +42,29 @@ exports.getAllComments = (req, res) => {
       });
     })
     .catch((error) => {
-      return res.status(500).send({
-        error: "Server Error",
-        message: "An error occurred while retrieving comments.",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
-exports.getOneCommentById = (req, res) => {
+exports.getOneCommentById = (req, res, next) => {
   let id = Number(req.params.id);
-
-  if (id <= 0) {
-    return res.status(400).send({
-      error: "Invalid ID",
-      message: "The ID must be a positive number and greater than 0.",
-    });
-  }
 
   Comment.findById(id)
     .then((comment) => {
       if (!comment) {
-        return res
-          .status(404)
-          .send({ error: "Not Found", message: "No Comments Found" });
+        const err = new Error("Comment Not Exists");
+        err.status = 404;
+        next(err);
+        return;
       }
       return res.send(comment);
     })
     .catch((error) => {
-      return res.status(500).send({
-        error: "Server Error",
-        message: "An error occurred while fetching comments",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
-exports.updateComment = (req, res) => {
+exports.updateComment = (req, res, next) => {
   const id = Number(req.params.id);
 
   Comment.updateById(id, req.body)
@@ -90,28 +76,17 @@ exports.updateComment = (req, res) => {
     })
     .catch((error) => {
       if (error.kind === "not_found") {
-        return res.status(404).send({
-          error: "Not Found",
-          message: "Please Provide Valid ID.",
-        });
+        const err = new Error("Please Provide a Valid ID.");
+        err.status = 404;
+        next(err);
+        return;
       }
-      return res.status(500).send({
-        error: "Server Error",
-        message: "An error occurred while updating the comment.",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
-exports.deleteComment = (req, res) => {
+exports.deleteComment = (req, res, next) => {
   const id = Number(req.params.id);
-
-  if (id <= 0) {
-    return res.status(400).send({
-      error: "Invalid ID",
-      message: "The ID must be a positive number.",
-    });
-  }
 
   Comment.deleteById(id)
     .then((message) => {
@@ -119,15 +94,11 @@ exports.deleteComment = (req, res) => {
     })
     .catch((error) => {
       if (error.kind === "not_found") {
-        return res.status(404).send({
-          error: "Not Found",
-          message: `No record found with ID ${id}. It might have been deleted or does not exist.`,
-        });
+        const err = new Error("Please Provide a Valid ID.");
+        err.status = 404;
+        next(err);
+        return;
       }
-      return res.status(500).send({
-        error: "Server Error",
-        message: "An error occurred while deleting the comment.",
-        details: error.message,
-      });
+      next(error);
     });
 };

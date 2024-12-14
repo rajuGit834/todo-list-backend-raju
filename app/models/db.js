@@ -1,6 +1,7 @@
 const sqlite3 = require("sqlite3").verbose();
 const db = require("../config/config.js");
 const { constants } = require("buffer");
+const logger = require("../config/logger.js")
 
 function createUserTable(connection) {
   const query = `CREATE TABLE IF NOT EXISTS users(
@@ -11,9 +12,7 @@ function createUserTable(connection) {
 
   connection.run(query, (error) => {
     if (error) {
-      console.log("Users table is not created..", error.message);
-    } else {
-      console.log("Users table is created...");
+      logger.error("Users table is not created..", error.message);
     }
   });
 }
@@ -30,9 +29,7 @@ function createProjectTable(connection) {
 
   connection.run(query, (error) => {
     if (error) {
-      console.log("Project table is not created..", error.message);
-    } else {
-      console.log("Project table is created..");
+      logger.error("Project table is not created..", error.message);
     }
   });
 }
@@ -51,9 +48,7 @@ function createTaskTable(connection) {
 
   connection.run(query, (error) => {
     if (error) {
-      console.log("Task table is not created..", error.message);
-    } else {
-      console.log("Task table is created..");
+      logger.error("Task table is not created..", error.message);
     }
   });
 }
@@ -71,24 +66,22 @@ function createCommentsTable(connection) {
 
   connection.run(query, (error) => {
     if (error) {
-      console.log("Comments table is not created..", error.message);
-    } else {
-      console.log("Comments table is created successfully..");
+      logger.error("Comments table is not created..", error.message);
     }
   });
 }
 
 let connection = new sqlite3.Database(db.DB, (error) => {
   if (error) {
-    console.log("Not Connected With Database..", error.message);
+    logger.error("Not Connected With Database.." + error.message);
   } else {
-    console.log("Connected With Database Successfully..");
+    logger.info("Connected With Database Successfully..");
 
     connection.run("PRAGMA foreign_keys = ON", (error) => {
       if (error) {
-        console.log("Failed to enable foreign keys", error.message);
+        logger.error("Failed to enable foreign keys", error.message);
       } else {
-        console.log("Foreign key support enabled.");
+        logger.info("Foreign key support enabled.");
       }
     });
     createUserTable(connection);

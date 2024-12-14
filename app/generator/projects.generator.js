@@ -16,24 +16,26 @@ function getBulkData(insertCount) {
 }
 
 function insertDataInProjects(sqlite3) {
-  const totalProjects = 1_000_000;
-  const batchSize = 1000;
-  const numBatches = totalProjects / batchSize;
-  let totalDataInserted = 0;
+  sqlite3.serialize(() => {
+    const totalProjects = 1_000_000;
+    const batchSize = 1000;
+    const numBatches = totalProjects / batchSize;
+    let totalDataInserted = 0;
 
-  for (let i = 0; i < numBatches; i++) {
-    const bulkData = getBulkData(batchSize);
-    const placeHolder = bulkData.map(() => "(?, ?, ?, ?)").join(", ");
-    const query = `INSERT INTO projects(project_name, color, is_favorite, user_id) values ${placeHolder}`;
-    totalDataInserted += bulkData.length;
-    sqlite3.run(query, bulkData.flat(), (error) => {
-      if (error) {
-        console.log("Data not inserted in projects table.", error.message);
-      } else {
-        console.log("Data inserted successfully in projects table.");
-      }
-    });
-  }
+    for (let i = 0; i < numBatches; i++) {
+      const bulkData = getBulkData(batchSize);
+      const placeHolder = bulkData.map(() => "(?, ?, ?, ?)").join(", ");
+      const query = `INSERT INTO projects(project_name, color, is_favorite, user_id) VALUES ${placeHolder}`;
+      totalDataInserted += bulkData.length;
+      sqlite3.run(query, bulkData.flat(), (error) => {
+        if (error) {
+          console.log("Data not inserted in projects table.", error.message);
+        } else {
+          console.log("Data inserted successfully in projects table.");
+        }
+      });
+    }
+  });
 }
 
 module.exports = insertDataInProjects;

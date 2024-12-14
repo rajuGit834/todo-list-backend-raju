@@ -1,6 +1,7 @@
+const logger = require("../config/logger.js");
 const Project = require("../models/project.model.js");
 
-exports.createProject = (req, res) => {
+exports.createProject = (req, res, next) => {
   const project = new Project(req.body);
 
   Project.create(project)
@@ -11,67 +12,64 @@ exports.createProject = (req, res) => {
     })
     .catch((error) => {
       if (error.message.includes("SQLITE_CONSTRAINT")) {
-        return res.status(400).send({
-          error: "Invalid foreign key",
-          message:
-            "The provided 'user_id' is invalid or does not exist. Please provide a valid 'user_id'.",
-        });
+        logger.error(error.message);
+        const err = new Error(
+          "The provided 'user_id' is invalid or does not exist. Please provide a valid 'user_id'."
+        );
+        err.status = 400;
+        next(err);
+        return;
       }
-      return res.status(500).send({
-        message: "Project creation failed.",
-        error: error.message,
-      });
+      next(error);
     });
 };
 
-exports.getAllProjects = (req, res) => {
+exports.getAllProjects = (req, res, next) => {
   Project.findAll()
     .then((rows) => {
       if (!rows.length) {
-        return res.status(204).send({ message: "No projects found at this moment." });
+        const err = new Error("No projects found at this moment.");
+        err.status = 204;
+        next(err);
+        return;
       }
       return res.status(200).send(rows);
     })
     .catch((error) => {
-      return res.status(500).send({
-        message: "Failed to fetch projects.",
-        error: error.message,
-      });
+      next(error);
     });
 };
 
-exports.getOneUserById = (req, res) => {
+exports.getOneUser = (req, res, next) => {
   let id = Number(req.params.id);
-
-  if (id <= 0) {
-    return res.status(400).send({
-      error: "Invalid ID",
-      message: "The ID must be a positive number and greater than 0.",
-    });
-  }
 
   Project.findById(id)
     .then((project) => {
       if (!project) {
-        return res
-          .status(404)
-          .send({ error: "Not Found", message: "No Project Found" });
+        const err = new Error("Project Not Exists");
+        err.status = 404;
+        next(err);
+        return;
       }
       return res.send(project);
     })
     .catch((error) => {
-      return res.status(500).send({
-        error: "Server Error",
-        message: "An error occurred while fetching projects",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
-exports.updateProject = (req, res) => {
+exports.updateProject = (req, res, next) => {
   const id = Number(req.params.id);
 
-  Project.updateById(id, req.body)
+  Project.findById(id)
+    .then((project) => {
+      const requestBody = {
+        projectName: req.body.project_name || project.project_name,
+        color: req.body.color || project.color,
+        isFavorite: req.body.is_favorite || project.is_favorite,
+      };
+      return Project.updateById(id, requestBody);
+    })
     .then((updatedProject) => {
       return res.status(200).send({
         message: "Project Updated Successfully.",
@@ -79,45 +77,30 @@ exports.updateProject = (req, res) => {
       });
     })
     .catch((error) => {
-      if(error.kind === "not_found"){
-        return res.status(404).send({
-          error: "Not Found",
-          message: "Please Provide Valid ID",
-        });
+      if (error.kind === "not_found") {
+        const err = new Error("Please Provide a Valid ID.");
+        err.status = 404;
+        next(err);
+        return;
       }
-      return res.status(500).send({
-        error: "Update Failed",
-        message: "An error occurred while updating the project.",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
-exports.deleteProject = (req, res) => {
+exports.deleteProject = (req, res, next) => {
   const id = Number(req.params.id);
-
-  if (id <= 0) {
-    return res.status(400).send({
-      error: "Invalid ID",
-      message: "The ID must be a positive number.",
-    });
-  }
 
   Project.deleteById(id)
     .then((message) => {
-      return res.send({ message: message + id });
+      return res.status(200).send({ message: message + id });
     })
     .catch((error) => {
       if (error.kind === "not_found") {
-        return res.status(404).send({
-          error: "Not Found",
-          message: `No project found with ID ${id}, or it was already deleted.`,
-        });
+        const err = new Error("Please Provide a Valid ID.");
+        err.status = 404;
+        next(err);
+        return;
       }
-      return res.status(500).send({
-        error: "Delete Failed",
-        message: "An error occurred while attempting to delete the project.",
-        details: error.message,
-      });
+      next(error);
     });
 };

@@ -18,26 +18,26 @@ function getBulkData(insertCount) {
 
 function insertDataInTasks(sqlite3) {
   return new Promise((resolve, reject) => {
-    const totalProjects = 1_000_000;
-    const batchSize = 1000;
-    const numBatches = totalProjects / batchSize;
-    let totalDataInserted = 0;
+    sqlite3.serialize(() => {
+      const totalProjects = 1_000_000;
+      const batchSize = 1000;
+      const numBatches = totalProjects / batchSize;
+      let totalDataInserted = 0;
 
-    for (let i = 0; i < numBatches; i++) {
-      const bulkData = getBulkData(batchSize);
-      const placeHolder = bulkData.map(() => "(?, ?, ?, ?, ?)").join(", ");
-      const query = `INSERT INTO task(content, description, due_date, is_completed, project_id) values ${placeHolder}`;
+      for (let i = 0; i < numBatches; i++) {
+        const bulkData = getBulkData(batchSize);
+        const placeHolder = bulkData.map(() => "(?, ?, ?, ?, ?)").join(", ");
+        const query = `INSERT INTO task(content, description, due_date, is_completed, project_id) values ${placeHolder}`;
 
-      sqlite3.run(query, bulkData.flat(), (error) => {
-        if (error) {
-          reject("Data not inserted in projects table " + error.message);
-        } else {
-          resolve(
-            "Data inserted successfully in tasks table. " + totalProjects
-          );
-        }
-      });
-    }
+        sqlite3.run(query, bulkData.flat(), (error) => {
+          if (error) {
+            reject("Data not inserted in projects table " + error.message);
+          } else {
+            resolve(totalProjects);
+          }
+        });
+      }
+    });
   });
 }
 

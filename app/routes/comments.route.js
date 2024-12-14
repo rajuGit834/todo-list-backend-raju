@@ -2,6 +2,7 @@ module.exports = (app) => {
   const router = require("express").Router();
   const commentValidation = require("../validation/comment.validation");
   const commentsController = require("../controller/comments.controller");
+  const validIdMiddleware = require("../middlewares/validIdMiddleware");
 
   router
     .route("/")
@@ -9,9 +10,9 @@ module.exports = (app) => {
     .post(commentValidation, commentsController.createComment);
   router
     .route("/:id")
-    .get(commentsController.getOneCommentById)
+    .get(validIdMiddleware, commentsController.getOneCommentById)
     .put(commentValidation, commentsController.updateComment)
-    .delete(commentsController.deleteComment);
+    .delete(validIdMiddleware, commentsController.deleteComment);
 
   app.use("/api/comments", router);
 

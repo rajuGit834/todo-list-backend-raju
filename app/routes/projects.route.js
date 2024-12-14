@@ -1,6 +1,8 @@
 module.exports = (app) => {
   const projectController = require("../controller/project.controller");
   const projectValidation = require("../validation/projects.validation");
+  const validIdMiddleware = require("../middlewares/validIdMiddleware");
+
   const router = require("express").Router();
 
   router
@@ -9,9 +11,9 @@ module.exports = (app) => {
     .post(projectValidation, projectController.createProject);
   router
     .route("/projects/:id")
-    .get(projectController.getOneUserById)
+    .get(validIdMiddleware, projectController.getOneUser)
     .put(projectValidation, projectController.updateProject)
-    .delete(projectController.deleteProject);
+    .delete(validIdMiddleware, projectController.deleteProject);
 
   app.use("/api", router);
 };

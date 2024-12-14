@@ -1,77 +1,59 @@
 const User = require("../models/users.model");
+const logger = require("../config/logger");
 
-exports.createUser = (req, res) => {
+exports.createUser = (req, res, next) => {
   const user = new User(req.body);
 
   User.create(user)
     .then((newUser) => {
-      return res.status(200).send({
+      return res.status(201).send({
         message: "User Added Successfully..",
         user: newUser,
       });
     })
     .catch((error) => {
-      if (
-        error.message ===
-        "SQLITE_CONSTRAINT: UNIQUE constraint failed: users.user_email"
-      ) {
-        return res.status(400).send({
-          error: "Conflict",
-          message: "The provided email is already in use.",
-        });
+      if (error.message.includes("SQLITE_CONSTRAINT: UNIQUE constraint")) {
+        logger.error(error.message);
+        const err = new Error("The provided email is already in use.");
+        err.status = 400;
+        next(err);
+        return;
       }
-      return res.status(500).send({
-        error: "Server Error",
-        message: "An error occurred while adding the user.",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
-exports.getAllUsers = (req, res) => {
+exports.getAllUsers = (req, res, next) => {
   User.findAll()
     .then((users) => {
       if (!users.length) {
-        return res
-          .status(404)
-          .send({ error: "Not Found", message: "No Users Found" });
+        const err = new Error("No Users Found");
+        err.status = 404;
+        next(err);
+        return;
       }
       return res.send(users);
     })
     .catch((error) => {
-      return res.status(500).send({
-        error: "Server Error",
-        message: "An error occurred while fetching users",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
-exports.getOneUserById = (req, res) => {
+exports.getOneUserById = (req, res, next) => {
   let id = Number(req.params.id);
-
-  if (id <= 0) {
-    return res.status(400).send({
-      error: "Invalid ID",
-      message: "The ID must be a positive number and greater than 0.",
-    });
-  }
 
   User.findById(id)
     .then((user) => {
       if (!user) {
-        return res
-          .status(404)
-          .send({ error: "Not Found", message: "No Users Found" });
+        const error = new Error("User Not Exists");
+        error.status = 404;
+        next(error);
+        return;
       }
       return res.send(user);
     })
     .catch((error) => {
-      return res.status(500).send({
-        error: "Server Error",
-        message: "An error occurred while fetching users",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
@@ -87,32 +69,23 @@ exports.updateUser = (req, res) => {
     })
     .catch((error) => {
       if (error.kind === "not_found") {
-        return res.status(404).send({
-          error: "Not Found",
-          message: "Please Provide a Valid ID.",
-        });
+        const err = new Error("Please Provide a Valid ID.");
+        err.status = 404;
+        next(err);
+        return;
       }
       if (error.message.includes("SQLITE_CONSTRAINT: UNIQUE")) {
-        return res.status(400).send({
-          error: "Conflict",
-          message: "The provided email is already in use.",
-        });
+        const err = new Error("The provided email is already in use.");
+        err.status = 400;
+        next(err);
+        return;
       }
-      return res
-        .status(500)
-        .send({ message: "User not updated", error: error.message });
+      next(error);
     });
 };
 
 exports.deleteUser = (req, res) => {
   const id = Number(req.params.id);
-
-  if (id <= 0) {
-    return res.status(400).send({
-      error: "Invalid ID",
-      message: "The ID must be a positive number and greater than 0.",
-    });
-  }
 
   User.deleteById(id)
     .then((message) => {
@@ -122,15 +95,11 @@ exports.deleteUser = (req, res) => {
     })
     .catch((error) => {
       if (error.kind === "not_found") {
-        return res.status(404).send({
-          error: "Not Found",
-          message: `No user found with ID ${id} or the user has already been deleted.`,
-        });
+        const err = new Error("Please Provide a Valid ID.");
+        err.status = 404;
+        next(err);
+        return;
       }
-      return res.status(500).send({
-        error: "Server Error",
-        message: "An error occurred while updating the user.",
-        details: error.message,
-      });
+      next(error);
     });
 };

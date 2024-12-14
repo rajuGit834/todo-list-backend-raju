@@ -1,11 +1,11 @@
 const Task = require("../models/task.model");
 
-exports.createTask = (req, res) => {
+exports.createTask = (req, res, next) => {
   const task = new Task(req.body);
 
   Task.create(task)
     .then((newTask) => {
-      return res.send({
+      return res.status(201).send({
         message: "Task Added Successfully..",
         task: newTask,
       });
@@ -16,68 +16,54 @@ exports.createTask = (req, res) => {
           "SQLITE_CONSTRAINT: FOREIGN KEY constraint failed"
         )
       ) {
-        return res.status(400).send({
-          error: "Invalid foreign key",
-          message:
-            "The provided 'project_id' is invalid or does not exist. Please provide a valid 'project_id'.",
-        });
+        logger.error(error.message);
+        const err = new Error(
+          "The provided 'project_id' is invalid or does not exist. Please provide a valid 'project_id'."
+        );
+        err.status = 400;
+        next(err);
+        return;
       }
 
-      return res.status(500).send({
-        error: "Task creation failed",
-        message: "An unexpected error occurred while adding the task.",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
-exports.getAllTask = (req, res) => {
+exports.getAllTask = (req, res, next) => {
   Task.findAll(req.query)
     .then((tasks) => {
       if (!tasks.length) {
-        return res
-          .status(200)
-          .send({ message: "No tasks found at this moment." });
+        const err = new Error("No tasks found at this moment.");
+        err.status = 404;
+        next(err);
+        return;
       }
       return res.status(200).send(tasks);
     })
     .catch((error) => {
-      return res.status(500).send({
-        error: "Something went wrong while fetching task",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
-exports.getOneTaskById = (req, res) => {
+exports.getOneTaskById = (req, res, next) => {
   let id = Number(req.params.id);
-
-  if (id <= 0) {
-    return res.status(400).send({
-      error: "Invalid ID",
-      message: "The ID must be a positive number and greater than 0.",
-    });
-  }
 
   Task.findById(id)
     .then((task) => {
       if (!task) {
-        return res
-          .status(404)
-          .send({ error: "Not Found", message: "No Task Found" });
+        const err = new Error("Task Not Exists");
+        err.status = 404;
+        next(err);
+        return;
       }
       return res.status(200).send(task);
     })
     .catch((error) => {
-      return res.status(500).send({
-        error: "Server Error",
-        message: "An error occurred while fetching tasks",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
-exports.updateTask = (req, res) => {
+exports.updateTask = (req, res, next) => {
   const id = Number(req.params.id);
 
   Task.updateById(id, req.body)
@@ -89,25 +75,17 @@ exports.updateTask = (req, res) => {
     })
     .catch((error) => {
       if (error.kind === "not_found") {
-        return res.status(404).send({
-          error: "Not Found",
-          message: "Please Provide Valid ID",
-        });
+        const err = new Error("Please Provide a Valid ID.");
+        err.status = 404;
+        next(err);
+        return;
       }
-      return res.status(500).send({
-        error: "Update Failed",
-        message: "An error occurred while updating the task.",
-        details: error.message,
-      });
+      next(error);
     });
 };
 
-exports.deleteTask = (req, res) => {
+exports.deleteTask = (req, res, next) => {
   const id = Number(req.params.id);
-
-  if (id <= 0) {
-    return res.status(400).send({ message: "ID must be a positive number." });
-  }
 
   Task.deleteById(id)
     .then((message) => {
@@ -117,12 +95,11 @@ exports.deleteTask = (req, res) => {
     })
     .catch((error) => {
       if (error.kind === "not_found") {
-        return res.status(404).send({
-          error: `Task with ID ${id} not found or already deleted.`,
-        });
+        const err = new Error("Please Provide a Valid ID.");
+        err.status = 404;
+        next(err);
+        return;
       }
-      return res
-        .status(500)
-        .send({ message: "Failed to delete task.", error: error.message });
+      next(error);
     });
 };

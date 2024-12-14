@@ -1,5 +1,5 @@
 const sqlite3 = require("./db.js");
-const insertValuesInComment = require("../generator/comments.generator.js");
+const insertDataInComment = require("../generator/comments.generator.js");
 
 const Comment = function (newComment) {
   (this.content = newComment.content),
@@ -7,7 +7,7 @@ const Comment = function (newComment) {
     (this.taskId = newComment.task_id || null);
 };
 
-// insertValuesInComment(sqlite3);
+// insertDataInComment(sqlite3);
 
 Comment.create = (comment) => {
   return new Promise((resolve, reject) => {

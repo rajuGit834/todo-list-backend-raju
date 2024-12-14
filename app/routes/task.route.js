@@ -1,6 +1,8 @@
 module.exports = (app) => {
   const taskController = require("../controller/task.controller");
   const taskValidation = require("../validation/task.validation");
+  const validIdMiddleware = require("../middlewares/validIdMiddleware");
+
   const router = require("express").Router();
 
   router
@@ -9,9 +11,9 @@ module.exports = (app) => {
     .post(taskValidation, taskController.createTask);
   router
     .route("/:id")
-    .get(taskController.getOneTaskById)
+    .get(validIdMiddleware, taskController.getOneTaskById)
     .put(taskValidation, taskController.updateTask)
-    .delete(taskController.deleteTask);
+    .delete(validIdMiddleware, taskController.deleteTask);
 
   app.use("/api/task", router);
 };
